@@ -1,0 +1,13 @@
+from java.util import Calendar
+cal = Calendar.getInstance();
+vCurrentDateTime = cal.getTime();
+vPMNUM = mbo.getString("PMNUM");
+vPMStatus = mbo.getMboSet("$vPMStatus", 'PMSTATUS', '1=1');
+if vPMStatus:
+    vPMStatus.add();
+    vPMStatus.setValue("ORGID","FMD");
+    vPMStatus.setValue("SITEID","KAUST");
+    vPMStatus.setValue("PMNUM",mbo.getString("PMNUM"));
+    vPMStatus.setValue("CHANGEBY",user);
+    vPMStatus.setValue("CHANGEDATE",vCurrentDateTime);
+    vPMStatus.setValue("STATUS",mbo.getString("STATUS"));

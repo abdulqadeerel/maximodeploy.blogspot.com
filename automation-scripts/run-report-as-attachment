@@ -1,0 +1,38 @@
+from psdi.server import MXServer
+from psdi.mbo import Mbo, MboConstants
+#from psdi.util.logging import MXLoggerFactory
+from com.ibm.tivoli.maximo.report.birt.admin import ReportAdminServiceRemote
+from com.ibm.tivoli.maximo.report.birt.runtime import ReportParameterData
+from java.io import FileOutputStream
+
+vWarrantyType = mbo.getString("MATUSETRANS_ISSUE_WARRANTY.INVUSELINE.ZZITEMWARRENTYTYPE")
+if mbo.getString("STATUS") in ('WAPPR') and vWarrantyType == 'GENERIC':
+#if vWarrantyType == 'GENERIC':
+    #service.error("",vWarrantyType)
+    reportName = "zz_csp_r_gwarrenty.rptdesign"    # name of the report to be lauched
+    appName = "CSPREIMBURESEMENT"                  # application
+    reportFolder = "Attachments"         # folder where the report will be stored
+    formsn = mbo.getString("formsn")
+    doctypesMboSet = MXServer.getMXServer().getMboSet('DOCTYPES', mbo.getUserInfo())
+    doctypesMboSet.setWhere("DOCTYPE='" + reportFolder + "'")
+    outputFilePath=doctypesMboSet.getMbo(0).getString('DEFAULTFILEPATH')
+    outputFileName = formsn + "-GenericWarranty.pdf"
+    outputFile = outputFilePath + "/" + outputFileName
+    # get the handler to BIRT report engine
+    reportAdminService = MXServer.getMXServer().lookup("BIRTREPORT")
+    # pass formsn as report parameter
+    parameterData = ReportParameterData()
+    parameterData.addParameter("where", "(CSPREIMBURESEMENT.formsn='"+formsn+"')")
+    reportBytes = reportAdminService.runReport(MXServer.getMXServer().getSystemUserInfo(), reportName, appName, parameterData, outputFileName, ReportAdminServiceRemote.OUTPUT_FORMAT_PDF)
+    # writes the binary data to the output file
+    fos = FileOutputStream(outputFile)
+    fos.write(reportBytes)
+    fos.close()
+    doclinksMboSet = mbo.getMboSet("DOCLINKS")
+    doclinksMbo = doclinksMboSet.add()
+    doclinksMbo.setValue("URLTYPE", "FILE")
+    doclinksMbo.setValue("URLNAME", outputFile)
+    doclinksMbo.setValue("NEWURLNAME", outputFile)
+    doclinksMbo.setValue("DOCTYPE", reportFolder)
+    doclinksMbo.setValue("ADDINFO", True)
+    doclinksMbo.setValue("DESCRIPTION", "CSP Generic Warranty")

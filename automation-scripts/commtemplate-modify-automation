@@ -1,0 +1,29 @@
+#Notify Managers when PO Approved from PM - formatted email
+if (mbo.getString("STATUS") == "APPR"):
+      # whereclause is a string with condition to select a comm.template
+      whereclause = "TEMPLATEID ='PO-APPR-MGRR'"
+
+      # Get the Communication template via Asset relationship to send email  
+      # mbo is implicit asset object through which we get a template             
+      ctMboSet = mbo.getMboSet("$commtemp","COMMTEMPLATE",whereclause);
+      ctMboSet.setQbeExactMatch("true")
+      ctMboSet.reset()
+      ctMbo = ctMboSet.getMbo(0)
+      
+      corcount = mbo.getMboSet("POLINE").count()
+      coractionset = mbo.getMboSet("POLINE")
+      txtres = " " 
+          
+      if corcount > 0:
+          
+        txtres = "<style>.div {  padding: 15px;font-weight:bold;}</style><p> ---------------------THIS  IS  AN  AUTO  GENERATED  EMAIL  DO  NOT  REPLY--------------------- </p>"+"<br /> " + "<P> ---------------------PO Details-----------------------</P> " + "<br />" +"<B>PONUM :  </B>"+ mbo.getString("PONUM")+ "<span class=div> <B>   Contract :  </B></span>" + mbo.getString("poline.prline.pr.contract")+"<span class=div> <B>    Service :  </B></span>"+ mbo.getString("poline.prline.pr.SERVICECODE")+"<span class=div>  <B>  Service Description : </B> </span>"+ mbo.getString("poline.prline.pr.servicecode.description")+ "<br>  </br>"+"<B>Payment Terms :  </B>"+ mbo.getString("PAYMENTTERMS")+ "<br> </br>"+ "<B>Supplier Name :  </B>"+ mbo.getString("ACTUALVENDOR")+" <br></br> "+"<B>Buyer Name :  </B>"+mbo.getString("BUYER.DESCRIPTION")+"<br> </br>"+"<B>Vendor :  </B>"+mbo.getString("VENDOR")+"<span class=div>  <B>  Vendor Description :  </B> </span>"+mbo.getString("PO_VENDOR.NAME")+"<br></br>"+"<B>Total PO Cost :</B>     "+mbo.getString("CURRENCYCODE")+" : "+mbo.getString("TOTALCOST")+"<br> </br>"+ "<P>---------------------POline Details-----------------------------</P> "+"<table border=1 width=1000 >"+ "<tr>" + "<th> Item </th>" +  " <th> PRNUM </th> " + " <th> DESCRIPTION </th> " +  " <th> QTY </th> " + "<th> UOM </th>" + "<th> Unitcost </th>" + "<th> Linecost </th>" + "<th> TAX </th>" + "<th> Budgeted </th>" + "<th> ETA </th>" + "</tr>"
+        i=0;
+        statuscount =0;
+        while i < corcount:
+            coraction = coractionset.getMbo(i)
+            txtres =  txtres  +"<tr>" + "<td>"+ coraction.getString("ITEMNUM") +"</td>" + "<td>"+ coraction.getString("PRNUM") +"</td>" + "<td>"+ coraction.getString("DESCRIPTION") +"</td>"  + " <td>"+ coraction.getString("ORDERQTY") +" </td> " +  "<td> "+ coraction.getString("ORDERUNIT") +" </td>" +  "<td> "+ coraction.getString("UNITCOST") +" </td>" +  "<td> "+ coraction.getString("LINECOST") +" </td>" +  "<td> "+ coraction.getString("TAX1") +" </td>" +  "<td> "+ coraction.getString("ISBUDGETED") +" </td>"+  "<td width=100> "+ coraction.getString("ETA") +" </td>"  + "</tr>" 
+            i+=1
+        txtres = txtres +  "</table>"
+        ctMbo.setValue("MESSAGE", txtres)
+        if(ctMbo is not None):
+             ctMbo.sendMessage(mbo,mbo);

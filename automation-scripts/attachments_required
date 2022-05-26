@@ -1,0 +1,13 @@
+#Attribute Launch point 
+#Error message if attachement is missing
+if mbo.getString("STATUS") == 'WAPPR':
+    doclinkSet=mbo.getMboSet("DOCLINKS")
+    doclinkMbo=doclinkSet.moveFirst()
+    recordFound=False
+    while doclinkMbo and not recordFound:
+        if doclinkMbo.getString("OWNERTABLE")=="PO" and doclinkMbo.getDouble("OWNERID")==mbo.getDouble("POID"):
+    	    recordFound=True
+        doclinkMbo=doclinkSet.moveNext()
+    
+    if not recordFound:
+        service.error("","Alert:   Attachment is missing for this PO!")
